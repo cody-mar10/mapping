@@ -10,6 +10,7 @@ import bowtie
 import bwa
 from utils import check_installs
 
+DISPATCH_TABLE = {"bowtie2": bowtie.main, "bwa": bwa.main}
 
 def parse_args() -> argparse.Namespace:
     # TODO: probably should have subparsers for each mapper...
@@ -97,10 +98,11 @@ def main(
     logging.info(f"Command: {' '.join(sys.argv)}")
     if mapper == "bwa":
         logging.info(f"Running bwa mem for mapping")
-        bwa.main(reference, reads, threads, outdir)
-    else:
-        raise NotImplementedError(f"{mapper} mapping not implemented yet")
-        # bowtie.main(reference)
+    elif mapper == "bowtie2":
+        logging.info(f"Running bowtie2 for mapping")
+
+    mapping_fn = DISPATCH_TABLE[mapper]
+    mapping_fn(reference, reads, threads, outdir)
 
     maxmem_GB = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / (1024 ** 2)
     logging.info(f"Max memory usage: {maxmem_GB:.3f} GB")
