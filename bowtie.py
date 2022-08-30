@@ -21,7 +21,7 @@ def build_index(reference: Path, threads: int, __log: Path) -> None:
     """
     command = shlex.split(f"bowtie2-build --threads {threads} {reference} {reference}")
     with __log.open("ab") as logfile:
-        subprocess.run(command, stderr=logfile)
+        subprocess.run(command, stdout=logfile, stderr=subprocess.STDOUT)
 
 
 def bowtie2_map(
