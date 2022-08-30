@@ -19,7 +19,7 @@ def samtools_view_and_sort(
         logfile (BinaryIO): opened log file to store stderr log
     """
     # TODO: supposedly -u is better for piping to another samtools command?
-    sam2bam = shlex.split(f"samtools view -bS -F4 -")
+    sam2bam = shlex.split(f"samtools view -uS -F4 -")
     sort_bam = shlex.split(f"samtools sort -@{threads-1} - -o {output}")
 
     bam_process = subprocess.Popen(
