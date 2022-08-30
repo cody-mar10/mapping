@@ -2,14 +2,14 @@
 import argparse
 import logging
 import os
-import re
 import shlex
 import subprocess
 import time
-from collections import defaultdict
 from pathlib import Path
-from typing import DefaultDict, List, Tuple
-from samtools import samtools_view_and_sort, index_bam
+from typing import List
+
+from samtools import index_bam, samtools_view_and_sort
+from utils import get_read_pairs
 
 
 def get_bwa_argparser() -> argparse.ArgumentParser:
@@ -240,29 +240,6 @@ def bwa_mem(
         time.sleep(0.1)
 
         samtools_view_and_sort(mapping_process, threads, output, logfile)
-
-
-def get_read_pairs(*reads: str) -> List[Tuple[str, str]]:
-    """Given all reads file paths, identify the paired reads that share
-    the same sample basename.
-
-    >>> reads = ["ABC_1.fastq.gz", "ABC_2.fastq.gz", \
-        "DEF_1.fastq.gz", "DEF_2.fastq.gz"]
-    >>> get_read_pairs(*reads)
-    >>> [("ABC_1.fastq.gz", "ABC_2.fastq.gz"), ("DEF_1.fastq.gz", "DEF_2.fastq.gz")]
-
-    Returns:
-        List[Tuple[str, str]]: list of read pairs
-    """
-    _read_pairs: DefaultDict[str, List[str]] = defaultdict(list)
-
-    # works for .fastq.gz .fastq .fq.gz .fq
-    pattern = re.compile("_[12].f(?:ast)?q(?:.gz)?")
-    for read in reads:
-        sample = pattern.sub("", read)
-        _read_pairs[sample].append(read)
-
-    return [tuple(pair) for pair in _read_pairs.values()]
 
 
 def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None:
