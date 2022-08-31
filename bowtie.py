@@ -10,7 +10,7 @@ from typing import List
 from samtools import index_bam, samtools_view_and_sort
 from utils import get_read_pairs
 
-
+# TODO: lots of similarities with bwa...make a base class?
 def build_index(reference: Path, threads: int, __log: Path) -> None:
     """Build bowtie2 index
 
@@ -38,7 +38,7 @@ def bowtie2_map(
         output (Path): name of output BAM file
         __log (Path): path to store stderr log output of commands ran
     """
-    # TODO: if multiple sets of reads, use -mm ?
+    # TODO: if multiple sets of reads, use -mm ? i don't think so since only running one at a time
     # TODO: accept other types of reads formats? -> set that logic off to get_read_pairs
     mapping = shlex.split(
         f"bowtie2 -p {threads} --no-unal -x {reference} -1 {r1} -2 {r2}"
@@ -58,6 +58,7 @@ def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None
     """Run bowtie mapping and samtools bam file sorting"""
     commands_log = outdir.joinpath("bowtie2.log")
     ext = reference.suffix
+    ref_basename = reference.stem
     if not reference.with_suffix(f"{ext}.1.bt2").exists():
         logging.info(f"Building index for {reference}")
         build_index(reference, threads, commands_log)
@@ -67,7 +68,9 @@ def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None
         )
 
     for r1, r2 in get_read_pairs(*reads):
-        output_basename = f'{os.path.basename(r1).rsplit("_1", 1)[0]}.bam'
+        output_basename = (
+            f'{ref_basename}_{os.path.basename(r1).rsplit("_1", 1)[0]}.sorted.bam'
+        )
         output = outdir.joinpath(output_basename)
         logging.info(f"Mapping {r1} and {r2} against the reference.")
         bowtie2_map(reference, r1, r2, threads, output, commands_log)

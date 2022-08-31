@@ -242,10 +242,12 @@ def bwa_mem(
         samtools_view_and_sort(mapping_process, threads, output, logfile)
 
 
+# TODO: this code is almost identical to bowtie....need a common base func
 def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None:
     """Run bwa mem mapping and samtools bam file sorting"""
     commands_log = outdir.joinpath("bwa-mem.log")
     ext = reference.suffix
+    ref_basename = reference.stem
     if not reference.with_suffix(f"{ext}.amb").exists():
         logging.info(f"Building index for {reference}")
         build_index(reference, commands_log)
@@ -255,7 +257,9 @@ def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None
         )
 
     for r1, r2 in get_read_pairs(*reads):
-        output_basename = f'{os.path.basename(r1).rsplit("_1", 1)[0]}.bam'
+        output_basename = (
+            f'{ref_basename}_{os.path.basename(r1).rsplit("_1", 1)[0]}.sorted.bam'
+        )
         output = outdir.joinpath(output_basename)
         logging.info(f"Mapping {r1} and {r2} against the reference.")
         bwa_mem(reference, r1, r2, threads, output, commands_log)
