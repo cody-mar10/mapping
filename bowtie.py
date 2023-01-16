@@ -54,7 +54,12 @@ def bowtie2_map(
         samtools_view_and_sort(mapping_process, threads, output, logfile)
 
 
-def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None:
+def main(
+    reference: Path,
+    reads: List[str],
+    threads: int,
+    outdir: Path,
+) -> None:
     """Run bowtie mapping and samtools bam file sorting"""
     commands_log = outdir.joinpath("bowtie2.log")
     ext = reference.suffix
@@ -67,7 +72,7 @@ def main(reference: Path, reads: List[str], threads: int, outdir: Path,) -> None
             f"SKIPPING building bowtie2 a index for {reference} since it already exists."
         )
 
-    for r1, r2 in get_read_pairs(*reads):
+    for r1, r2 in get_read_pairs(reads):
         output_basename = (
             f'{ref_basename}_{os.path.basename(r1).rsplit("_1", 1)[0]}.sorted.bam'
         )
