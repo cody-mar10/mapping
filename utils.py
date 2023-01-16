@@ -1,7 +1,8 @@
 import re
 import shutil
 from collections import defaultdict
-from typing import DefaultDict, List, Tuple
+from pathlib import Path
+from typing import DefaultDict, Iterator, List, Tuple
 
 
 def check_install(name: str) -> bool:
@@ -28,13 +29,13 @@ def check_installs(*programs: str) -> None:
         )
 
 
-def get_read_pairs(*reads: str) -> List[Tuple[str, str]]:
+def get_read_pairs(reads: List[str]) -> List[Tuple[str, str]]:
     """Given all reads file paths, identify the paired reads that share
     the same sample basename.
 
     >>> reads = ["ABC_1.fastq.gz", "ABC_2.fastq.gz", \
         "DEF_1.fastq.gz", "DEF_2.fastq.gz"]
-    >>> get_read_pairs(*reads)
+    >>> get_read_pairs(reads)
     >>> [("ABC_1.fastq.gz", "ABC_2.fastq.gz"), ("DEF_1.fastq.gz", "DEF_2.fastq.gz")]
 
     Returns:
@@ -49,3 +50,12 @@ def get_read_pairs(*reads: str) -> List[Tuple[str, str]]:
         _read_pairs[sample].append(read)
 
     return [tuple(pair) for pair in _read_pairs.values()]
+
+
+def read_batch_file(file: Path, header: bool = True) -> Iterator[Tuple[Path, List[str]]]:
+    with file.open() as fp:
+        if header:
+            fp.readline()
+        for line in fp:
+            reference, reads = line.rstrip().split("\t")
+            yield Path(reference), reads.split(",")
